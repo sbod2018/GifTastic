@@ -2,86 +2,89 @@ $(document).ready(() => {
 
 
     const curb = [
-        "Larry", "Jeff", "Cheryl", "Susie", "Richard",
+        "Larry David", "Jeff Greene", "Cheryl David", "Susie Greene", "Richard Lewis",
         "J.B.Smoove"
     ];
 
-// function to make buttons and add to page
-function populateButtons(arrayToUse, classToAdd, areaToAddTo){
-    $(areaToAddTo).empty();
+    // function to make buttons and add to page
+    function populateButtons() {
+        $('#curbed-buttons').empty();
 
-    for (let i = 0; i < arrayToUse.length; i++) {
-        let a = $("<button>");
-        a.addClass(classToAdd);
-        a.attr("data-type", arrayToUse[i]);
-        a.text(arrayToUse[i]);
-        $(areaToAddTo).append(a);
+        for (let i = 0; i < curb.length; i++) {
+            let a = $("<button>");
+            a.addClass("curbed-button");
+            a.attr("data-topic", curb[i]);
+            a.text(curb[i]);
+            $('#curbed-buttons').append(a);
+        };
     };
-};
 
-$(document).on("click", ".curb-buttons", () => {
-    $("#curbed").empty();
-    $("#curb-button").removeClass("active");
-    $(this).addClass("active");
+    $(document).on("click", ".curbed-button", function() {
+        $("#curbed-gifs").empty();
+        // $("#curb-button").removeClass("active");
+        // $(this).addClass("active");
 
-    let type = $(this).attr("data-type");
-    let queryUrl = "http://api.giphy.com/v1/gifs/search?q=" + type + "&api_key=STlL3CcOnyZ0Zu4fPQ8TYxxEHETImz5y=10";
+        const topic = $(this).attr("data-topic");
+        console.log(topic)
+        const queryUrl = "http://api.giphy.com/v1/gifs/search?q=" + encodeURIComponent(topic) + "&api_key=STlL3CcOnyZ0Zu4fPQ8TYxxEHETImz5y&limit=5";
 
-    $.ajax({
-        url: queryUrl,
-        method: "GET"
-    })
 
-        .then(response(() => {
-            let results = response.data;
+        $.ajax({
+            url: queryUrl,
+            method: "GET"
+        })
 
-            for (let i = 0; i < results.length; i++) {
-                let curbDiv = $("<div class=\"animal-item\">");
+            .then(function (response) {
+                const results = response.data;
 
-                let rating = results[i].rating;
+                for (let i = 0; i < results.length; i++) {
+                    const curbDiv = $('<div class="curbed-item">');
 
-                let p = $("<p>").text("Rating: " + rating);
+                    const rating = results[i].rating;
 
-                let animated = results[i].images.fixed_height.url;
-                let still = results[i].images.fixed_height_still.url;
+                    const p = $("<p>").text("Rating: " + rating);
 
-                let curbImage = $("<img>");
-                curbImage.attr("src", still);
-                curbImage.attr("data-still", still);
-                curbImage.attr("data-animate", animated);
-                curbImage.addClass("curb-image");
+                    const animated = results[i].images.fixed_height.url;
+                    const still = results[i].images.fixed_height_still.url;
 
-                curbDiv.append(p);
-                curbDiv.append(animalImage);
+                    const curbImage = $("<img>");
+                    curbImage.attr("src", still);
+                    curbImage.attr("data-still", still);
+                    curbImage.attr("data-animate", animated);
+                    curbImage.addClass("curbed-image");
 
-                $('#curb').append(curbDiv);
-            }
-        }));
+                    curbDiv.append(p);
+                    curbDiv.append(curbImage);
+
+                    $('#curbed-gifs').append(curbDiv);
+                }
+            });
+    });
+
+    $(document).on('click', '.curbed-image', function () {
+        const state = $(this).attr('data-state');
+
+        if (state === 'still') {
+            $(this).attr('src', $(this).attr('data-animate'));
+            $(this).attr('data-state', 'animate');
+        }
+        else {
+            $(this).attr('src', $(this).attr('data-still'));
+            $(this).attr('data-state', 'still');
+        }
+    });
+
+    $('#add-curbed').on('click', function (event) {
+        event.preventDefault();
+        const newCurb = $('input').eq(0).val();
+        console.log(newCurb)
+        if (newCurb.length > 2) {
+            curb.push(newCurb);
+        }
+
+        populateButtons();
+    });
+
+    populateButtons();
 });
 
-$(document).on('click', 'curb-image', () =>{
-    let state = $(this).attr('data-state');
-
-    if (state === 'still') {
-        $(this).attr('src', $(this).attr('data-animate'));
-        $(this).attr('data-state', 'animate');
-    }
-    else {
-        $(this).attr('src', $(this).attr('data-still'));
-        $(this).attr('data-state', 'still');
-    }
-});
-
-$('#add-curb').on('click', (event) =>{
-    event.preventDefault();
-    const newCurb = $('input').eq(0).val();
-
-    if (newCurb.length > 2) {
-        curb.push(newCurb);
-    }
-
-    populateButtons(curb, 'curb-button', '#curb-buttons');
-});
-
-populateButtons(curb, 'curb-button', '#curb-buttons');
-});
